@@ -24,7 +24,6 @@ type Config struct {
 	DBPassword string
 	DBName string
 	JWTSecret string
-	// JWTExpireMinutes string
 	JWTRefreshToken string
 	JWTExpire string
 }
@@ -42,9 +41,8 @@ func LoadEnv(){
 		DBPassword: getEnv("DB_PASSWORD", "password"),
 		DBName: getEnv("DB_NAME", "project_management"),
 		JWTSecret: getEnv("JWT_SECRET", "rahasia"),
-		// JWTExpireMinutes: getEnv("JWT_EXPIRE_MINUTES", "60"),
-		JWTRefreshToken: getEnv("JWT_REFRESH_TOKEN", "24h"),
-		JWTExpire: getEnv("JWT_EXPIRE", "2h"),
+		JWTExpire: getEnv("JWT_EXPIRE", "6h"),
+		JWTRefreshToken: getEnv("REFRESH_TOKEN_EXPIRED", "24h"),
 		// JWTExpire: getEnv("JWT_EXPIRE", "1h"),
 	}
 }
