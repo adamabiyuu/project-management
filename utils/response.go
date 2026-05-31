@@ -36,22 +36,20 @@ func Created(c *fiber.Ctx , message string, data interface{}) error {
 	})
 }
 
-func BadRequest(c *fiber.Ctx , message string, data interface{}, error string) error {
+func BadRequest(c *fiber.Ctx , message string, error string) error {
 	return c.Status(fiber.StatusBadRequest).JSON(Response{
 		Status: "Error Bad Request",
 		ResponseCode: fiber.StatusBadRequest,
 		Message: message,
-		Data: data,
 		Error: error,
 	})
 }
 
-func NotFound(c *fiber.Ctx , message string, data interface{}, error string) error {
+func NotFound(c *fiber.Ctx , message string, error string) error {
 	return c.Status(fiber.StatusNotFound).JSON(Response{
 		Status: "Error Not Found",
 		ResponseCode: fiber.StatusNotFound,
 		Message: message,
-		Data: data,
 		Error: error,
 	})
 }

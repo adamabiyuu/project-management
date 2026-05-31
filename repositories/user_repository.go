@@ -5,13 +5,14 @@ import (
 	"github.com/adamabiyuu/project-management/models"
 )
 
+// kontrak
 type UserRepository interface {
 	Create(user *models.User) error
 	FindByEmail(email string) (*models.User, error)
 }
-
+// cetakan atau design blueprint
 type userRepository struct {}
-
+// cara buat nya
 func NewUserRepository() UserRepository {
 	return &userRepository{}
 }
