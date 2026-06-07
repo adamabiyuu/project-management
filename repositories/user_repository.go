@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"strings"
+
 	"github.com/adamabiyuu/project-management/config"
 	"github.com/adamabiyuu/project-management/models"
 )
@@ -39,5 +41,43 @@ func (r *userRepository) FindByPublicID(PublicID string) (*models.User, error) {
 	var user models.User
 	err := config.DB.Where("public_id = ?", PublicID).First(&user).Error
 	return &user, err
+}
+
+func (r *userRepository) FindAllPagination(filter,sort string, limit,offset int)([]models.User, int64, error){
+	var users []models.User
+	var total int64
+
+	db := config.DB.Model(&models.User{})
+	//filtering
+	if filter != ""{
+		filterPattern := "%" + filter + "%" 
+		db = db.Where("name Ilike ? OR email Ilike ?", filterPattern,filterPattern)
+	}
+	//counting total data
+	if err := db.Count(&total).Error; err != nil{
+		return nil,0, err
+	}
+
+	//sorting
+	if sort != "" {
+		//Misalnya sort=name (ASC ascending ) sort=-name (DESC descending )
+		if sort == "-id"{
+			sort="-internal_id"
+		} else if sort == "id"{
+			sort="internal_id"
+		}
+
+		if strings.HasPrefix(sort, "-"){
+			sort = strings.TrimPrefix(sort, "-") + " DESC"
+		} else {
+			sort += " ASC"
+		}
+
+		db = db.Order(sort)
+	}
+
+	err := db.Limit(limit).Offset(offset).Find(&users).Error
+	return users, total, err
+
 }
 
