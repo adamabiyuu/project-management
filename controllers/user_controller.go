@@ -1,6 +1,11 @@
+// ctx hanya ada di layer Controller,
+// karena tugasnya memang menjadi penghubung antara request/response HTTP dengan logika aplikasi (Service).
 package controllers
 
 import (
+	"math"
+	"strconv"
+
 	"github.com/adamabiyuu/project-management/models"
 	"github.com/adamabiyuu/project-management/services"
 	"github.com/adamabiyuu/project-management/utils"
@@ -72,3 +77,40 @@ func (c *UserController) GetUser(ctx *fiber.Ctx) error {
 	}
 	return utils.Success(ctx, "Data Berhasil Ditemukan", userResp)
 }
+
+func (c *UserController) GetUserPagination(ctx *fiber.Ctx) error {
+	// /users/page?page=1&limit=10&sort=-id&filter=tryadi
+	
+	page, _ := strconv.Atoi(ctx.Query("page", "1"))
+	limit, _ := strconv.Atoi(ctx.Query("limit", "10"))
+	offset := (page - 1) * limit
+
+	filter := ctx.Query("filter", "")
+	sort := ctx.Query("sort", "")
+
+	users, total, err := c.service.GetAllPagination(filter, sort, limit, offset)
+	if err != nil {
+		return utils.BadRequest(ctx, "Gagal Mengambil Data", err.Error())
+	}
+
+	var userResp []models.UserResponse
+	_ = copier.Copy(&userResp, &users)
+
+	meta := utils.PaginationMeta{
+		Page: page,
+		Limit: limit,
+		Total: int(total),
+		TotalPages: int(math.Ceil(float64(total) / float64(limit))),
+		Filter: filter,
+		Sort: sort,
+	}
+
+	if total == 0 {
+		return utils.NotFoundPagination(ctx, "Data pengguna Tidak ditemukan", userResp, meta)
+	}
+
+	return utils.SuccessPagination(ctx, "Data ditemukan", userResp, meta)
+	
+}
+
+
