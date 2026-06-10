@@ -16,6 +16,7 @@ type UserService interface {
 	GetByPublicID(id string) (*models.User, error)
 	GetAllPagination(filter,sort string, limit,offset int)([]models.User, int64, error)
 	Update(user *models.User) error
+	Delete(id uint) error
 }
 // cetakan atau design blueprint
 type userService struct {
@@ -73,6 +74,10 @@ func (s *userService) GetAllPagination(filter,sort string, limit,offset int)([]m
 
 func (s *userService) Update(user *models.User) error {
 	return s.repo.Update(user)
+}
+
+func (s *userService) Delete(id uint) error {
+	return s.repo.Delete(id)
 }
 
 

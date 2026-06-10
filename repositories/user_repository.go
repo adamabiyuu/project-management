@@ -15,6 +15,7 @@ type UserRepository interface {
 	FindByPublicID(PublicID string) (*models.User, error)
 	FindAllPagination(filter,sort string, limit,offset int)([]models.User, int64, error)
 	Update(user *models.User) error
+	Delete(id uint) error
 }
 // cetakan atau design blueprint
 type userRepository struct {}
@@ -90,3 +91,6 @@ func (r *userRepository) Update(user *models.User) error {
 	}).Error
 }
 
+func (r *userRepository) Delete(id uint) error {
+	return config.DB.Delete(&models.User{}, id).Error
+}
