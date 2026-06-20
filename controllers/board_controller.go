@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"math"
+	"strconv"
+
 	"github.com/adamabiyuu/project-management/models"
 	"github.com/adamabiyuu/project-management/services"
 	"github.com/adamabiyuu/project-management/utils"
@@ -91,4 +94,33 @@ func (c *BoardController) RemoveBoardMembers(ctx *fiber.Ctx) error{
 		return utils.BadRequest(ctx, "Gagal Menghapus Member", err.Error())
 	}
 	return utils.Success(ctx, "Member Berhasil dihapus", nil)
+}
+
+func (c *BoardController) GetMyBoardPaginate(ctx *fiber.Ctx) error {
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userID := claims["pub_id"].(string)
+
+	page, _ := strconv.Atoi(ctx.Query("page", "1"))
+	limit, _ := strconv.Atoi(ctx.Query("limit", "10"))
+	offset := (page - 1) * limit
+
+	filter := ctx.Query("filter", "")
+	sort := ctx.Query("sort", "")
+
+	boards, total, err := c.service.GetAllByUserPaginate(userID, filter, sort, limit, offset)
+	if err != nil {
+		return utils.InternalServerError(ctx, "Gagal Mengambil Data Board", err.Error())
+	}
+
+	meta := utils.PaginationMeta{
+		Page: page,
+		Limit: limit,
+		Total: int(total),
+		TotalPage: int(math.Ceil(float64(total) / float64(limit))),
+		Filter: filter,
+		Sort: sort,
+	}
+
+	return utils.SuccessPagination(ctx, "Data Board Berhasil diambil", boards, meta)
 }

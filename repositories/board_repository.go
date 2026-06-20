@@ -74,7 +74,7 @@ func (r *boardRepository) FindAllByUserPaginate(userPublicID, filter,sort string
 	query := config.DB.Model(&models.Board{}).
 	Where("owner_public_id = ? OR internal_id IN ("+ 
 		"SELECT board_members.board_internal_id FROM board_members "+
-		"JOIN user ON users.internal_id = board_members.user_internal_id "+
+		"JOIN users ON users.internal_id = board_members.user_internal_id "+
 		"WHERE users.public_id = ?)", userPublicID, userPublicID)
 	if filter != "" {
 		query = query.Where("title ILIKE ?", "%"+filter+"%")

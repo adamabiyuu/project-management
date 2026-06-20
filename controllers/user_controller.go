@@ -101,7 +101,7 @@ func (c *UserController) GetUserPagination(ctx *fiber.Ctx) error {
 		Page: page,
 		Limit: limit,
 		Total: int(total),
-		TotalPages: int(math.Ceil(float64(total) / float64(limit))),
+		TotalPage: int(math.Ceil(float64(total) / float64(limit))),
 		Filter: filter,
 		Sort: sort,
 	}
