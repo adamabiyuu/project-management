@@ -5,6 +5,7 @@ import (
 
 	"github.com/adamabiyuu/project-management/models"
 	"github.com/adamabiyuu/project-management/repositories"
+	"github.com/adamabiyuu/project-management/utils"
 	"github.com/google/uuid"
 )
 
@@ -15,7 +16,7 @@ type listService struct {
 }
 
 type ListWithOrder struct {
-	Position []uuid.UUID
+	Positions []uuid.UUID
 	Lists []models.List
 }
 
@@ -52,6 +53,12 @@ func (s *listService) GetByBoardID(boardPublicID string) (*ListWithOrder, error)
 	}
 
 	//sorting by position
+	orderedList := utils.SortListsByPosition(lists, position)
+
+	return &ListWithOrder{
+		Positions: position,
+		Lists: orderedList,
+	}, nil
 
 	
 }
