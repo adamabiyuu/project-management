@@ -10,7 +10,7 @@ func SortListsByPosition(lists []models.List, order []uuid.UUID) []models.List {
 
 	listMap := make(map[uuid.UUID]models.List)
 	for _,l := range lists {
-		listMap[l.PublicId] = l
+		listMap[l.PublicID] = l
 	}
 
 	//urutkan sesuai order nya

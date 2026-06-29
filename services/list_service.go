@@ -2,11 +2,15 @@ package services
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/adamabiyuu/project-management/config"
 	"github.com/adamabiyuu/project-management/models"
+	"github.com/adamabiyuu/project-management/models/types"
 	"github.com/adamabiyuu/project-management/repositories"
 	"github.com/adamabiyuu/project-management/utils"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type listService struct {
@@ -59,6 +63,84 @@ func (s *listService) GetByBoardID(boardPublicID string) (*ListWithOrder, error)
 		Positions: position,
 		Lists: orderedList,
 	}, nil
+}
 
+func (s *listService) GetByID (id uint) (*models.List, error) {
+	return s.listRepo.FindByID(id)
+}
+
+func (s *listService) GetByPublicID (publicID string) (*models.List, error) {
+	return s.listRepo.FindByPublicID(publicID)
+}
+
+func (s *listService) Create(list *models.List) error {
+	//validasi board
+	//transaction
+	//update position
+	//commit trx
+	board, err := s.boardRepo.FindByPublicID(list.BoardPublicID.String())
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("board not found")
+		}
+		return fmt.Errorf("failed to get board: %w", err)
+	}
+	list.BoardInternalID = board.InternalID
+
+	if list.PublicID == uuid.Nil {
+		list.PublicID = uuid.New()
+	}
+	//mulai transaksi
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	//simpan list baru
+
+	if err := tx.Create(list).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create list: %w", err)
+	}
+
+	// update position
+	var position models.ListPosition
+	res := tx.Where("board_internal_id = ?", board.InternalID).First(&position)
+	if errors.Is(res.Error, gorm.ErrRecordNotFound){
+		// buat baru jika belum ada
+
+		position = models.ListPosition{
+			PublicID: uuid.New(),
+			BoardID: board.InternalID,
+			ListOrder: types.UUIDArray{list.PublicID},
+		}
+
+		if err := tx.Create(&position).Error; err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to create list position : %w", err)
+		}
 	
+	} else if res.Error != nil {
+		tx.Rollback()
+			return fmt.Errorf("failed to create list position : %w", res.Error)
+	} else {
+		// tambahkan ID baru
+
+
+		position.ListOrder = append(position.ListOrder, list.PublicID)
+		//update ke DB
+		if err := tx.Model(&position).Update("list_order", position.ListOrder).Error; err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update list position : %w", err)
+		}
+	}
+
+	//commit trx
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("transaction commit failed : %w", err)
+	}
+
+	return nil
 }
