@@ -13,7 +13,7 @@ type ListPositionRepository interface {
 	GetMyBoard(boardPublicID string) (*models.ListPosition, error)
 	CreateOrUpdate(boardPublicID string, listOrder []uuid.UUID) error
 	GetListOrder(boardPublicID string) ([]uuid.UUID, error)
-	UpdateListOrder(position models.ListPosition) error
+	UpdateListOrder(position *models.ListPosition) error
 }
 
 func NewListPositionRepository() ListPositionRepository {
@@ -46,7 +46,7 @@ func (r *listPositionRepository) GetListOrder(boardPublicID string) ([]uuid.UUID
 	return position.ListOrder, err
 }
 
-func (r *listPositionRepository) UpdateListOrder(position models.ListPosition) error {
+func (r *listPositionRepository) UpdateListOrder(position *models.ListPosition) error {
 	return config.DB.Model(position).
 	Where("internal_id = ?", position.InternalID).
 	Update("list_order", position.ListOrder).Error

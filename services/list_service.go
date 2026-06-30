@@ -144,3 +144,29 @@ func (s *listService) Create(list *models.List) error {
 
 	return nil
 }
+
+func (s *listService) Update(list *models.List) error {
+	return s.listRepo.Update(list)
+}
+
+func (s *listService) Delete(id uint) error {
+	return s.listRepo.Delete(id)
+}
+
+func (s *listService) UpdatePositions(boardPublicID string, positions []uuid.UUID) error {
+	// verifikasi board
+	board, err := s.boardRepo.FindByPublicID(boardPublicID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	// get list position
+	position, err := s.listPosRepo.GetMyBoard(board.PublicID.String())
+	if err != nil {
+		return errors.New("list position not found")
+	}
+
+	//update list order nya
+	position.ListOrder = positions
+	return s.listPosRepo.UpdateListOrder(position)
+}
