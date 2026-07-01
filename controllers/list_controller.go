@@ -5,6 +5,7 @@ import (
 	"github.com/adamabiyuu/project-management/services"
 	"github.com/adamabiyuu/project-management/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type ListController struct {
@@ -26,3 +27,5 @@ func (c *ListController) CreateList(ctx *fiber.Ctx) error {
 
 	return utils.Success(ctx, "List Berhasil Dibuat", list)
 }
+
+ 
