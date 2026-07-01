@@ -31,7 +31,7 @@ func (r *listRepository) Create(list *models.List) error {
 func (r *listRepository) Update(list *models.List) error {
 	return config.DB.Model(&models.List{}).Where("public_id = ?", list.PublicID).
 	Updates(map[string]interface{}{
-		"tittle": list.Title,
+		"title": list.Title,
 	}).Error
 }
 
