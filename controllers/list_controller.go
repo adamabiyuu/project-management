@@ -37,6 +37,7 @@ func (c *ListController) UpdateList(ctx *fiber.Ctx) error {
 	}
 
 	//validasi publicID benar format UUID atau tidak
+	//misal 0000.aaa.00fasjlf.0000
 	if _, err := uuid.Parse(publicID); err != nil {
 		return utils.BadRequest(ctx, "ID tidak valid", err.Error())
 	}
@@ -54,6 +55,7 @@ func (c *ListController) UpdateList(ctx *fiber.Ctx) error {
 	}
 
 	//ambil data list terbaru
+	// data list yang sudah terupdate
 	updatedList, err := c.service.GetByPublicID(publicID)
 	if err != nil {
 		return utils.NotFound(ctx, "List Tidak Ditemukan", err.Error())
