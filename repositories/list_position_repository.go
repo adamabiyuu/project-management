@@ -10,7 +10,7 @@ type listPositionRepository struct {
 }
 
 type ListPositionRepository interface {
-	GetMyBoard(boardPublicID string) (*models.ListPosition, error)
+	GetByBoard(boardPublicID string) (*models.ListPosition, error)
 	CreateOrUpdate(boardPublicID string, listOrder []uuid.UUID) error
 	GetListOrder(boardPublicID string) ([]uuid.UUID, error)
 	UpdateListOrder(position *models.ListPosition) error
@@ -20,11 +20,11 @@ func NewListPositionRepository() ListPositionRepository {
 	return &listPositionRepository{}
 }
 
-func (r *listPositionRepository) GetMyBoard(boardPublicID string) (*models.ListPosition, error) {
+func (r *listPositionRepository) GetByBoard(boardPublicID string) (*models.ListPosition, error) {
 	var position models.ListPosition
 
-	err := config.DB.Joins("JOIN boards ON boards_internal_id = list_positions.board_internal_id").
-	Where("boards.public_id = ?", boardPublicID).Error
+	err := config.DB.Joins("JOIN boards ON boards.internal_id = list_positions.board_internal_id").
+	Where("boards.public_id = ?", boardPublicID).First(&position).Error
 
 	return &position, err
 }
@@ -39,7 +39,7 @@ func (r *listPositionRepository) CreateOrUpdate(boardPublicID string, listOrder 
 
 	
 func (r *listPositionRepository) GetListOrder(boardPublicID string) ([]uuid.UUID, error) {
-	position, err := r.GetMyBoard(boardPublicID)
+	position, err := r.GetByBoard(boardPublicID)
 	if err != nil {
 		return nil, err
 	}
