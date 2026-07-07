@@ -44,6 +44,7 @@ func Setup(app *fiber.App,
 	boardGroup.Delete("/:id/members", bc.RemoveBoardMembers)
 	boardGroup.Get("/my", bc.GetMyBoardPaginate)
 	boardGroup.Get("/:board_id/lists", lc.GetListOnBoard )
+	boardGroup.Put("/:board_id/position", lc.UpdateListPosition)
 
 	listGroup := api.Group("/lists")
 	listGroup.Post("/", lc.CreateList)
