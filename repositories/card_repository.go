@@ -15,7 +15,7 @@ type CardRepository interface {
 	Delete(id uint) error
 	FindByID(id uint) (*models.Card, error)
 	FindByPublicID(publicID string) (*models.Card, error)
-	FindByListID (listID string)([]*models.Card, error)
+	FindByListID(listID string) ([]models.Card, error)
 }
 
 type cardRepository struct {
@@ -80,4 +80,14 @@ func (r *cardRepository) FindByPublicID(publicID string) (*models.Card, error) {
 	}
 
 	return &card, nil
+}
+
+func (r *cardRepository) FindByListID(listID string) ([]models.Card, error) {
+	var cards []models.Card
+	err := config.DB.Joins("JOIN lists ON lists.internal_id = cards.list_internal_id").
+	Where("lists.public_id = ?", listID).
+	Order("position ASC").
+	Find(&cards).Error
+
+	return cards, err
 }
