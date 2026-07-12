@@ -115,7 +115,7 @@ func (s *cardService) Update(card *models.Card, listPublicID string) error {
 		return fmt.Errorf("card not found: %w", err)
 	}
 
-	// ambil list baru
+	// ambil tujuan list yang baru
 	newList, err := s.listRepo.FindByPublicID(listPublicID)
 	if err != nil {
 		return fmt.Errorf("list not found: %w", err)
@@ -186,6 +186,7 @@ func (s *cardService) Update(card *models.Card, listPublicID string) error {
 	card.InternalID = existingCard.InternalID
 	card.PublicID = existingCard.PublicID
 	card.ListID = existingCard.ListID
+	// card.ListID = newList.InternalID
 
 	if err := tx.Save(card).Error; err != nil {
 		tx.Rollback()
