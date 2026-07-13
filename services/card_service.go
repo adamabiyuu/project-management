@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/adamabiyuu/project-management/config"
@@ -225,7 +226,47 @@ func (s *cardService) GetByListID(listPublicID string) ([]models.Card, error) {
 	}
 
 	//sorting
-	if position != nil && len(position.CardOrder > 0) {
-		cards = 
+	if position != nil && len( position.CardOrder ) > 0 {
+		cards = sortCartByPosition(cards,position.CardOrder)
 	}
+
+	return cards, nil
+}
+
+func sortCartByPosition(cards []models.Card, order []uuid.UUID) []models.Card {
+	//buat map untuk pencarian cepat
+	orderMap := make(map[uuid.UUID]int)
+	for i, id := range order {
+		orderMap[id] = i
+	}
+
+	defaultIndex := len(order)
+
+	//sorting slice
+	sort.SliceStable(cards, func(i, j int) bool {
+		idxI, okI := orderMap[cards[i].PublicID]
+		if !okI {
+			idxI = defaultIndex
+		}
+
+		idxJ, okJ := orderMap[cards[j].PublicID]
+		if !okJ {
+			idxJ = defaultIndex
+		}
+		if idxI == idxJ {
+			return cards[i].CreatedAt.Before(cards[j].CreatedAt)
+		}
+
+		return idxI < idxJ
+	})
+
+	return cards
+}
+
+func (s *cardService) GetByID(id uint) (*models.Card, error) {
+	return s.cardRepo.FindByID(id)
+}
+
+func (s *cardService) GetByPublicID(publicID string) (*models.Card, error) {
+	return s.cardRepo.FindByPublicID(publicID)
 }
