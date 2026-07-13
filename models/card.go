@@ -12,7 +12,7 @@ type Card struct {
 	ListID int64 `json:"list_internal_id" db:"list_internal_id" gorm:"column:list_internal_id"`
 	Title string `json:"title" db:"title"`
 	Description string `json:"description" db:"description"`
-	Duedate *time.Time `json:"due_date,omitempty" db:"due_date"`
+	DueDate *time.Time `json:"due_date,omitempty" db:"due_date"`
 	Position int64 `json:"position" db:"position"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 
