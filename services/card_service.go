@@ -18,7 +18,7 @@ type CardService interface {
 	Update(card *models.Card, listPublicID string) error
 	Delete(id uint) error
 
-	GetByListId(listPublicID string) ([]models.Card, error)
+	GetByListID(listPublicID string) ([]models.Card, error)
 	GetByID(id uint) (*models.Card, error)
 	GetByPublicID(publicID string) (*models.Card, error)
 }
@@ -199,4 +199,33 @@ func (s *cardService) Update(card *models.Card, listPublicID string) error {
 	}
 
 	return nil
+}
+
+func (s *cardService) Delete(id uint) error {
+	return s.cardRepo.Delete(id)
+}
+
+func (s *cardService) GetByListID(listPublicID string) ([]models.Card, error) {
+	// verifikasi listnya ada
+	list, err := s.listRepo.FindByPublicID(listPublicID)
+	if err != nil {
+		return nil, fmt.Errorf("list not found: %w", err)
+	}
+	//ambil card position
+	position, err := s.cardRepo.FindCardPositionByListID(list.InternalID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get card position: %w", err)
+	}
+
+	//ambil semua card di list tersebut
+
+	cards, err := s.cardRepo.FindByListID(listPublicID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cards: %w", err)
+	}
+
+	//sorting
+	if position != nil && len(position.CardOrder > 0) {
+		cards = 
+	}
 }
