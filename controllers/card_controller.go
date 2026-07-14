@@ -104,3 +104,34 @@ func (c *CardController) DeleteCard(ctx *fiber.Ctx) error {
 
 	return utils.Success(ctx, "Card berhasil dihapus", card)
 }
+
+func (c *CardController) GetListCard(ctx *fiber.Ctx) error {
+	listID := ctx.Params("list_id")
+
+	// validasi UUID
+	if _, err := uuid.Parse(listID); err != nil {
+		return utils.BadRequest(ctx, "id list tidak valid", err.Error())
+	}
+
+	cards, err := c.service.GetByListID(listID)
+	if err != nil {
+		return utils.BadRequest(ctx, "Gagal mengambil data", err.Error())
+	}
+
+	return utils.Success(ctx, "Data Card berhasil diambil", cards)
+}
+
+func (c *CardController) GetCardDetail(ctx *fiber.Ctx) error {
+	cardPublicID := ctx.Params("id")
+
+	card, err := c.service.GetByPublicID(cardPublicID)
+	if err != nil {
+		return utils.InternalServerError(ctx, "Error saat mengambil data", err.Error())
+	}
+	if card == nil {
+		return utils.NotFound(ctx, "Card tidak ditemukan", err.Error())
+	}
+
+	return utils.Success(ctx, "Data berhasil diambil", card)
+}
+
