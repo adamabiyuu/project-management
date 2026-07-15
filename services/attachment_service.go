@@ -13,6 +13,9 @@ type AttachmentService interface {
 	GetByPublicID(pubId uuid.UUID) (*models.CardAttachment, error)
 	Create(cardPublicId, userPublicID, filename string) (*models.CardAttachment, error)
 	DeleteByPublicID(pubID uuid.UUID) error
+
+	//gpt
+	FindByCardID(cardPublicID string) ([]models.CardAttachment, error)
 }
 
 type attachmentService struct {
@@ -58,4 +61,8 @@ func (s *attachmentService) Create(cardPublicId, userPublicID, filename string) 
 
 func (s *attachmentService) DeleteByPublicID(pubID uuid.UUID) error {
 	return s.AttachmentRepo.DeleteByPublicID(pubID)
+}
+
+func (s *attachmentService) FindByCardID(cardPublicID string) ([]models.CardAttachment, error) {
+    return s.AttachmentRepo.FindByCardID(cardPublicID)
 }

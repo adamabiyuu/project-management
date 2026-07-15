@@ -18,6 +18,22 @@ func NewCardController(s services.CardService) CardController {
 	return CardController{service: s}
 }
 
+//gpt
+// type CardController struct {
+// 	service           services.CardService
+// 	attachmentService services.AttachmentService
+// }
+
+// func NewCardController(
+// 	cardService services.CardService,
+// 	attachmentService services.AttachmentService,
+// ) CardController {
+// 	return CardController{
+// 		service:           cardService,
+// 		attachmentService: attachmentService,
+// 	}
+// }
+
 func (c *CardController) CreateCard(ctx *fiber.Ctx) error {
 	type CreateCardRequest struct {
 		ListPublicID string `json:"list_id"`
@@ -176,3 +192,59 @@ func (c *CardController) RemoveCardLabel(ctx *fiber.Ctx) error {
 
 	return utils.Success(ctx, "Label berhasil dihapus", nil)
 }
+
+
+// func (c *CardController) UploadAttachment(ctx *fiber.Ctx) error {
+
+// 	cardID := ctx.Params("id")
+
+// 	file, err := ctx.FormFile("file")
+// 	if err != nil {
+// 		return utils.BadRequest(ctx, "File wajib diupload", err.Error())
+// 	}
+
+// 	filename := uuid.New().String() + "_" + file.Filename
+
+// 	if err := ctx.SaveFile(file, "./uploads/"+filename); err != nil {
+// 		return utils.InternalServerError(ctx, "Gagal menyimpan file", err.Error())
+// 	}
+
+// 	// Ambil user dari JWT (sesuaikan dengan projectmu)
+// 	claims := ctx.Locals("user").(*jwt.Token).Claims.(jwt.MapClaims)
+// 	userID := claims["pub_id"].(string)
+
+// 	attachment, err := c.attachmentService.Create(cardID, userID, filename)
+// 	if err != nil {
+// 		return utils.InternalServerError(ctx, "Upload gagal", err.Error())
+// 	}
+
+// 	return utils.Success(ctx, "Attachment berhasil diupload", attachment)
+// }
+
+// func (c *CardController) GetAttachments(ctx *fiber.Ctx) error {
+
+// 	cardID := ctx.Params("id")
+
+// 	attachments, err := c.attachmentService.FindByCardID(cardID)
+// 	if err != nil {
+// 		return utils.InternalServerError(ctx, "Gagal mengambil attachment", err.Error())
+// 	}
+
+// 	return utils.Success(ctx, "Data attachment berhasil diambil", attachments)
+// }
+
+// func (c *CardController) DeleteAttachment(ctx *fiber.Ctx) error {
+
+// 	attachmentID := ctx.Params("attachment_id")
+
+// 	pubID, err := uuid.Parse(attachmentID)
+// 	if err != nil {
+// 		return utils.BadRequest(ctx, "Attachment ID tidak valid", err.Error())
+// 	}
+
+// 	if err := c.attachmentService.DeleteByPublicID(pubID); err != nil {
+// 		return utils.InternalServerError(ctx, "Gagal menghapus attachment", err.Error())
+// 	}
+
+// 	return utils.Success(ctx, "Attachment berhasil dihapus", nil)
+// }
