@@ -135,3 +135,44 @@ func (c *CardController) GetCardDetail(ctx *fiber.Ctx) error {
 	return utils.Success(ctx, "Data berhasil diambil", card)
 }
 
+func (c *CardController) AddCardLabel(ctx *fiber.Ctx) error {
+
+	type Request struct {
+		LabelID string `json:"label_id"`
+	}
+
+	var req Request
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.BadRequest(ctx, "Gagal membaca request", err.Error())
+	}
+
+	cardID := ctx.Params("id")
+
+	if err := c.service.AddLabel(cardID, req.LabelID); err != nil {
+		return utils.InternalServerError(ctx, "Gagal menambahkan label", err.Error())
+	}
+
+	return utils.Success(ctx, "Label berhasil ditambahkan", nil)
+}
+
+func (c *CardController) RemoveCardLabel(ctx *fiber.Ctx) error {
+
+	type Request struct {
+		LabelID string `json:"label_id"`
+	}
+
+	var req Request
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.BadRequest(ctx, "Gagal membaca request", err.Error())
+	}
+
+	cardID := ctx.Params("id")
+
+	if err := c.service.RemoveLabel(cardID, req.LabelID); err != nil {
+		return utils.InternalServerError(ctx, "Gagal menghapus label", err.Error())
+	}
+
+	return utils.Success(ctx, "Label berhasil dihapus", nil)
+}

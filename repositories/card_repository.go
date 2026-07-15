@@ -19,6 +19,9 @@ type CardRepository interface {
 
 	FindCardPositionByListID(id int64) (*models.CardPosition, error)
 	UpdatePosition(listID string, position []string) error
+
+	AddLabel(cardID, labelID int64) error
+	RemoveLabel(cardID, labelID int64) error
 }
 
 type cardRepository struct {
@@ -108,4 +111,17 @@ func (r *cardRepository) UpdatePosition(listID string, position []string) error 
 	return config.DB.Model(&models.CardPosition{}).
 	Where("list_internal_id = (SELECT internal_id FROM lists Where public_id = ?)", listID).
 	Update("card_order", position).Error	
+}
+
+func (r *cardRepository) AddLabel(cardID, labelID int64) error {
+	return config.DB.Create(&models.CardLabel{
+		CardID:  cardID,
+		LabelID: labelID,
+	}).Error
+}
+
+func (r *cardRepository) RemoveLabel(cardID, labelID int64) error {
+	return config.DB.
+		Where("card_internal_id = ? AND label_internal_id = ?", cardID, labelID).
+		Delete(&models.CardLabel{}).Error
 }

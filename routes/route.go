@@ -61,4 +61,12 @@ func Setup(app *fiber.App,
 	cardGroup.Put("/:id", cc.UpdateCard)
 	cardGroup.Delete("/:id", cc.DeleteCard)
 	cardGroup.Get("/:id", cc.GetCardDetail)
+
+	cardGroup.Post("/:id/labels", cc.AddCardLabel)
+	cardGroup.Delete("/:id/labels", cc.RemoveCardLabel)
+
+	cardGroup.Post(":id/attachments", cc.UploadAttachment) //upload
+	cardGroup.Get(":id/attachments", cc.GetAttachments)// get list attachments
+	cardGroup.Delete("/:card_id/attachments/:attachment_id", cc.DeleteAttachment)// delete
+
 }

@@ -22,20 +22,25 @@ type CardService interface {
 	GetByListID(listPublicID string) ([]models.Card, error)
 	GetByID(id uint) (*models.Card, error)
 	GetByPublicID(publicID string) (*models.Card, error)
+
+	AddLabel(cardPublicID, labelPublicID string) error
+	RemoveLabel(cardPublicID, labelPublicID string) error
 }
 
 type cardService struct {
 	cardRepo repositories.CardRepository
 	listRepo repositories.ListRepository
 	userRepo repositories.UserRepository
+	labelRepo repositories.LabelRepository
 }
 
 func NewCardService(
 cardRepo repositories.CardRepository, 
 listRepo repositories.ListRepository, 
 userRepo repositories.UserRepository,
+labelRepo repositories.LabelRepository,
 ) CardService {
-	return &cardService{cardRepo, listRepo, userRepo}
+	return &cardService{cardRepo, listRepo, userRepo, labelRepo}
 }
 
 func (s *cardService) Create(card *models.Card, listPublicID string) error {
@@ -269,4 +274,34 @@ func (s *cardService) GetByID(id uint) (*models.Card, error) {
 
 func (s *cardService) GetByPublicID(publicID string) (*models.Card, error) {
 	return s.cardRepo.FindByPublicID(publicID)
+}
+
+func (s *cardService) AddLabel(cardPublicID, labelPublicID string) error {
+
+	card, err := s.cardRepo.FindByPublicID(cardPublicID)
+	if err != nil {
+		return fmt.Errorf("card not found: %w", err)
+	}
+
+	label, err := s.labelRepo.FindByPublicID(labelPublicID)
+	if err != nil {
+		return fmt.Errorf("label not found: %w", err)
+	}
+
+	return s.cardRepo.AddLabel(card.InternalID, label.InternalID)
+}
+
+func (s *cardService) RemoveLabel(cardPublicID, labelPublicID string) error {
+
+	card, err := s.cardRepo.FindByPublicID(cardPublicID)
+	if err != nil {
+		return fmt.Errorf("card not found: %w", err)
+	}
+
+	label, err := s.labelRepo.FindByPublicID(labelPublicID)
+	if err != nil {
+		return fmt.Errorf("label not found: %w", err)
+	}
+
+	return s.cardRepo.RemoveLabel(card.InternalID, label.InternalID)
 }
