@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/adamabiyuu/project-management/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -9,7 +11,8 @@ import (
 type AttachmentRepository interface {
 	FindByCardID(cardPublicID string) ([]models.CardAttachment, error)
 	Create(attachment *models.CardAttachment) error
-	DeleteByPublicID(publicID uuid.UUID) error
+	DeleteByPublicID(pubId uuid.UUID) error
+	GetByPublicID(pubID uuid.UUID) (*models.CardAttachment, error)
 }
 
 type attachmentRepository struct {
@@ -39,6 +42,17 @@ func (r *attachmentRepository) Create(attachment *models.CardAttachment) error {
 	return r.db.Create(attachment).Error
 }
 
-func (r *attachmentRepository) DeleteByPublicID(publicID uuid.UUID) error {
-	return r.db.Where("public_id = ?", publicID).Delete(&models.CardAttachment{}).Error
+func (r *attachmentRepository) DeleteByPublicID(pubId uuid.UUID) error {
+	return r.db.Where("public_id = ?", pubId).Delete(&models.CardAttachment{}).Error
+}
+
+func (r *attachmentRepository) GetByPublicID(pubID uuid.UUID) (*models.CardAttachment, error) {
+	var att models.CardAttachment
+	if err := r.db.Where("public_id = ?", pubID).First(&att).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &att, nil
 }
