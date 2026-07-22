@@ -7,19 +7,18 @@ import (
 	"github.com/adamabiyuu/project-management/models"
 )
 
-// kontrak
 type UserRepository interface {
 	Create(user *models.User) error
 	FindByEmail(email string) (*models.User, error)
 	FindByID(id uint) (*models.User, error)
-	FindByPublicID(PublicID string) (*models.User, error)
-	FindAllPagination(filter,sort string, limit,offset int)([]models.User, int64, error)
+	FindByPublicID(publicID string) (*models.User, error)
+	FindAllPagination(filter, sort string, limit, ofset int) ([]models.User, int64, error)
 	Update(user *models.User) error
 	Delete(id uint) error
 }
-// cetakan atau design blueprint
-type userRepository struct {}
-// cara buat nya
+
+type userRepository struct{}
+
 func NewUserRepository() UserRepository {
 	return &userRepository{}
 }
@@ -40,37 +39,38 @@ func (r *userRepository) FindByID(id uint) (*models.User, error) {
 	return &user, err
 }
 
-func (r *userRepository) FindByPublicID(PublicID string) (*models.User, error) {
+func (r *userRepository) FindByPublicID(publicID string) (*models.User, error) {
 	var user models.User
-	err := config.DB.Where("public_id = ?", PublicID).First(&user).Error
+	err := config.DB.Where("public_id = ?", publicID).First(&user).Error
 	return &user, err
 }
 
-func (r *userRepository) FindAllPagination(filter,sort string, limit,offset int)([]models.User, int64, error){
+func (r *userRepository) FindAllPagination(filter, sort string, limit, ofset int) ([]models.User, int64, error) {
 	var users []models.User
 	var total int64
 
 	db := config.DB.Model(&models.User{})
+
 	//filtering
-	if filter != ""{
-		filterPattern := "%" + filter + "%" 
-		db = db.Where("name Ilike ? OR email Ilike ?", filterPattern,filterPattern)
+	if filter != "" {
+		filterPattern := "%" + filter + "%"
+		db = db.Where("name Ilike ? OR email Ilike ?", filterPattern, filterPattern)
 	}
-	//counting total data
-	if err := db.Count(&total).Error; err != nil{
-		return nil,0, err
+	//count total data
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
 
 	//sorting
 	if sort != "" {
-		//Misalnya sort=name (ASC ascending ) sort=-name (DESC descending )
-		if sort == "-id"{
-			sort="-internal_id"
-		} else if sort == "id"{
-			sort="internal_id"
+		//Misalnya sort=name (ASC ascending ) sort =-name (DESC descending)
+		if sort == "-id" {
+			sort = "-internal_id"
+		} else if sort == "id" {
+			sort = "internal_id"
 		}
 
-		if strings.HasPrefix(sort, "-"){
+		if strings.HasPrefix(sort, "-") {
 			sort = strings.TrimPrefix(sort, "-") + " DESC"
 		} else {
 			sort += " ASC"
@@ -79,15 +79,15 @@ func (r *userRepository) FindAllPagination(filter,sort string, limit,offset int)
 		db = db.Order(sort)
 	}
 
-	err := db.Limit(limit).Offset(offset).Find(&users).Error
+	err := db.Limit(limit).Offset(ofset).Find(&users).Error
 	return users, total, err
 
 }
 
 func (r *userRepository) Update(user *models.User) error {
 	return config.DB.Model(&models.User{}).
-	Where("public_id = ?", user.PublicID).Updates(map[string]interface{}{
-		"name":user.Name,
+		Where("public_id = ?", user.PublicID).Updates(map[string]interface{}{
+		"name": user.Name,
 	}).Error
 }
 

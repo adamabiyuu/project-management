@@ -14,33 +14,17 @@ type CardController struct {
 	service services.CardService
 }
 
-func NewCardController(s services.CardService) CardController {
-	return CardController{service: s}
+func NewCardController(s services.CardService) *CardController {
+	return &CardController{service: s}
 }
-
-//gpt
-// type CardController struct {
-// 	service           services.CardService
-// 	attachmentService services.AttachmentService
-// }
-
-// func NewCardController(
-// 	cardService services.CardService,
-// 	attachmentService services.AttachmentService,
-// ) CardController {
-// 	return CardController{
-// 		service:           cardService,
-// 		attachmentService: attachmentService,
-// 	}
-// }
 
 func (c *CardController) CreateCard(ctx *fiber.Ctx) error {
 	type CreateCardRequest struct {
-		ListPublicID string `json:"list_id"`
-		Title string `json:"title"`
-		Description string `json:"description"`
-		DueDate time.Time `json:"due_date"`
-		Position int `json:"position"`
+		ListPublicID string    `json:"list_id"`
+		Title        string    `json:"title"`
+		Description  string    `json:"description"`
+		DueDate      time.Time `json:"due_date"`
+		Position     int       `json:"position"`
 	}
 
 	var req CreateCardRequest
@@ -48,93 +32,85 @@ func (c *CardController) CreateCard(ctx *fiber.Ctx) error {
 		return utils.BadRequest(ctx, "Gagal Mengambil Data", err.Error())
 	}
 
-	card := &models.Card {
-		Title: req.Title,
+	card := &models.Card{
+		Title:       req.Title,
 		Description: req.Description,
-		DueDate: &req.DueDate,
-		Position: int64(req.Position),
-		// Position: req.Position,
+		DueDate:     &req.DueDate,
+		Position:    req.Position,
 	}
 
 	if err := c.service.Create(card, req.ListPublicID); err != nil {
-		return utils.InternalServerError(ctx, "Gagal Membuat Card", err.Error())
+		return utils.InternalServerError(ctx, "Gagal Membuat card", err.Error())
 	}
 
-	return utils.Success(ctx, "Card Berhasil dibuat", card)
+	return utils.Success(ctx, "Card berhasil dibuat", card)
 }
 
 func (c *CardController) UpdateCard(ctx *fiber.Ctx) error {
 	publicID := ctx.Params("id")
 
-	type UpdateCardRequest struct {
-		ListPublicID string `json:"list_id"`
-		Title string `json:"title"`
-		Description string `json:"description"`
-		DueDate *time.Time `json:"due_date"`
-		Position int `json:"position"`
+	type updateCardRequest struct {
+		ListPublicID string     `json:"list_id"`
+		Title        string     `json:"title"`
+		Description  string     `json:"description"`
+		DueDate      *time.Time `json:"due_date"`
+		Position     int        `json:"position"`
 	}
 
-	var req UpdateCardRequest
+	var req updateCardRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		return utils.BadRequest(ctx, "Gagal Parsing Data", err.Error())
+		return utils.BadRequest(ctx, "Gagal parsing data", err.Error())
 	}
 
-	//validasi uuid
 	if _, err := uuid.Parse(publicID); err != nil {
-		return utils.BadRequest(ctx, "ID Tidak Valid", err.Error())
+		return utils.BadRequest(ctx, "Id tidak valid", err.Error())
 	}
 
-	// Membuat object Card yang nantinya akan dikirim ke Service.
-	// Data diambil dari request yang sudah diparsing sebelumnya.
-	card := &models.Card {
-		Title: req.Title,
+	card := &models.Card{
+		Title:       req.Title,
 		Description: req.Description,
-		DueDate: req.DueDate,
-		Position: int64(req.Position),
-		PublicID: uuid.MustParse(publicID),
+		DueDate:     req.DueDate,
+		Position:    req.Position,
+		PublicID:    uuid.MustParse(publicID),
 	}
 
 	if err := c.service.Update(card, req.ListPublicID); err != nil {
 		return utils.InternalServerError(ctx, "Gagal update data", err.Error())
 	}
 
-	return utils.Success(ctx, "Card berhasil diperbaharui", card)
+	return utils.Success(ctx, "Card Berhasil diperbaharui", card)
 }
 
 func (c *CardController) DeleteCard(ctx *fiber.Ctx) error {
 	publicID := ctx.Params("id")
 
-	//validasi uuid
 	if _, err := uuid.Parse(publicID); err != nil {
-		return utils.BadRequest(ctx, "ID Tidak Valid", err.Error())
+		return utils.BadRequest(ctx, "ID tidak valid", err.Error())
 	}
 
 	card, err := c.service.GetByPublicID(publicID)
 	if err != nil {
-		return utils.NotFound(ctx, "Card Tidak Ditemukan", err.Error())
+		return utils.NotFound(ctx, "Card tidak ditemukan", err.Error())
 	}
 
 	if err := c.service.Delete(uint(card.InternalID)); err != nil {
 		return utils.BadRequest(ctx, "Gagal menghapus data", err.Error())
 	}
-
-	return utils.Success(ctx, "Card berhasil dihapus", card)
+	return utils.Success(ctx, "Card berhasil dihapus", publicID)
 }
 
 func (c *CardController) GetListCard(ctx *fiber.Ctx) error {
 	listID := ctx.Params("list_id")
-
-	// validasi UUID
 	if _, err := uuid.Parse(listID); err != nil {
-		return utils.BadRequest(ctx, "id list tidak valid", err.Error())
+		return utils.BadRequest(ctx, "Id list tidak valid", err.Error())
 	}
 
 	cards, err := c.service.GetByListID(listID)
 	if err != nil {
-		return utils.BadRequest(ctx, "Gagal mengambil data", err.Error())
+		return utils.InternalServerError(ctx, "Gagal Mengambil data", err.Error())
 	}
 
-	return utils.Success(ctx, "Data Card berhasil diambil", cards)
+	return utils.Success(ctx, "Data Card Berhasil Diambil", cards)
 }
 
 func (c *CardController) GetCardDetail(ctx *fiber.Ctx) error {
@@ -149,49 +125,40 @@ func (c *CardController) GetCardDetail(ctx *fiber.Ctx) error {
 	}
 
 	return utils.Success(ctx, "Data berhasil diambil", card)
+
 }
 
 func (c *CardController) AddCardLabel(ctx *fiber.Ctx) error {
+	cardId := ctx.Params("id")
 
-	type Request struct {
+	var body struct {
 		LabelID string `json:"label_id"`
 	}
 
-	var req Request
-
-	if err := ctx.BodyParser(&req); err != nil {
-		return utils.BadRequest(ctx, "Gagal membaca request", err.Error())
+	if err := ctx.BodyParser(&body); err != nil {
+		return utils.BadRequest(ctx, "Id tidak valid", err.Error())
 	}
-
-	cardID := ctx.Params("id")
-
-	if err := c.service.AddLabel(cardID, req.LabelID); err != nil {
-		return utils.InternalServerError(ctx, "Gagal menambahkan label", err.Error())
+	if err := c.service.AddLabel(cardId, body.LabelID); err != nil {
+		return utils.BadRequest(ctx, "Gagal menambahkan data label", err.Error())
 	}
-
-	return utils.Success(ctx, "Label berhasil ditambahkan", nil)
+	return utils.Success(ctx, "Label Berhasil ditambahkan", nil)
 }
-
 func (c *CardController) RemoveCardLabel(ctx *fiber.Ctx) error {
+	cardId := ctx.Params("id")
 
-	type Request struct {
+	var body struct {
 		LabelID string `json:"label_id"`
 	}
 
-	var req Request
-
-	if err := ctx.BodyParser(&req); err != nil {
-		return utils.BadRequest(ctx, "Gagal membaca request", err.Error())
+	if err := ctx.BodyParser(&body); err != nil {
+		return utils.BadRequest(ctx, "Id tidak valid", err.Error())
 	}
-
-	cardID := ctx.Params("id")
-
-	if err := c.service.RemoveLabel(cardID, req.LabelID); err != nil {
-		return utils.InternalServerError(ctx, "Gagal menghapus label", err.Error())
+	if err := c.service.RemoveLabel(cardId, body.LabelID); err != nil {
+		return utils.BadRequest(ctx, "Gagal menghapus data label", err.Error())
 	}
-
-	return utils.Success(ctx, "Label berhasil dihapus", nil)
+	return utils.Success(ctx, "Label Berhasil dihapus", nil)
 }
+
 
 
 // func (c *CardController) UploadAttachment(ctx *fiber.Ctx) error {

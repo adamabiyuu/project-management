@@ -14,7 +14,7 @@ import (
 
 func main() {
 	config.LoadEnv()
-	config.ConnectDB()	
+	config.ConnectDB()
 
 	seed.SeedAdmin()
 	app := fiber.New()
@@ -34,18 +34,16 @@ func main() {
 	listRepo := repositories.NewListRepository()
 	listService := services.NewListService(listRepo, boardRepo, listPosRepo)
 	listController := controllers.NewListController(listService)
-
 	labelRepo := repositories.NewLabelRepository()
-	// labelService := services.NewLabelService(labelRepo)
-	
 	//card
 	cardRepo := repositories.NewCardRepository()
 	cardService := services.NewCardService(cardRepo, listRepo, userRepo, labelRepo)
 	cardController := controllers.NewCardController(cardService)
-	
-	routes.Setup(app, userController, boardController, listController, &cardController)
+
+	routes.Setup(app, userController, boardController, listController, cardController)
 
 	port := config.AppConfig.AppPort
 	log.Println("Server is running on port :", port)
-	log.Fatal(app.Listen(":"+ port))
+	log.Fatal(app.Listen(":" + port))
+
 }

@@ -40,17 +40,16 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 
 func (c *UserController) Login(ctx *fiber.Ctx) error {
 	var body struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
-
 	if err := ctx.BodyParser(&body); err != nil {
-		return utils.BadRequest(ctx, "invalid request", err.Error())
+		return utils.BadRequest(ctx, "Invalid Request", err.Error())
 	}
-	
+
 	user, err := c.service.Login(body.Email, body.Password)
 	if err != nil {
-		return utils.Unauthorized(ctx, "invalid credential", err.Error())
+		return utils.Unauthorized(ctx, "Login Failed", err.Error())
 	}
 
 	token, _ := utils.GenerateToken(user.InternalID, user.Role, user.Email, user.PublicID)
@@ -58,11 +57,11 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 
 	var userResp models.UserResponse
 	_ = copier.Copy(&userResp, &user)
-	return utils.Success(ctx, "Login Successfully", fiber.Map{
-		"access_token": token,
+	return utils.Success(ctx, "Login Succesful", fiber.Map{
+		"access_token":  token,
 		"refresh_token": refreshToken,
-		"user": userResp,
-	})	
+		"user":          userResp,
+	})
 }
 
 func (c *UserController) GetUser(ctx *fiber.Ctx) error {
@@ -71,17 +70,18 @@ func (c *UserController) GetUser(ctx *fiber.Ctx) error {
 	if err != nil {
 		return utils.NotFound(ctx, "Data Not Found", err.Error())
 	}
+
 	var userResp models.UserResponse
 	err = copier.Copy(&userResp, &user)
 	if err != nil {
 		return utils.BadRequest(ctx, "Internal Server Error", err.Error())
 	}
-	return utils.Success(ctx, "Data Berhasil Ditemukan", userResp)
+	return utils.Success(ctx, "Data berhasil ditemukan", userResp)
 }
 
 func (c *UserController) GetUserPagination(ctx *fiber.Ctx) error {
-	// /users/page?page=1&limit=10&sort=-id&filter=tryadi
-	
+	// /users/page?page=1&limit=10&sort=-id&filter=triady
+	//100 /10 = 10 page
 	page, _ := strconv.Atoi(ctx.Query("page", "1"))
 	limit, _ := strconv.Atoi(ctx.Query("limit", "10"))
 	offset := (page - 1) * limit
@@ -98,31 +98,27 @@ func (c *UserController) GetUserPagination(ctx *fiber.Ctx) error {
 	_ = copier.Copy(&userResp, &users)
 
 	meta := utils.PaginationMeta{
-		Page: page,
-		Limit: limit,
-		Total: int(total),
+		Page:      page,
+		Limit:     limit,
+		Total:     int(total),
 		TotalPage: int(math.Ceil(float64(total) / float64(limit))),
-		Filter: filter,
-		Sort: sort,
+		Filter:    filter,
+		Sort:      sort,
 	}
 
 	if total == 0 {
-		return utils.NotFoundPagination(ctx, "Data pengguna Tidak ditemukan", userResp, meta)
+		return utils.NotFoundPagination(ctx, "Data pengguna tidak ditemukan", userResp, meta)
 	}
 
 	return utils.SuccessPagination(ctx, "Data ditemukan", userResp, meta)
-	
 }
 
 func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
-	// karena dikirim dari param, akan berbentuk string biasa, 
-	// maka perlu diparsing dari string menjadi uuid
 	publicID, err := uuid.Parse(id)
 	if err != nil {
 		return utils.BadRequest(ctx, "Invalid ID Format", err.Error())
 	}
-
 	var user models.User
 	if err := ctx.BodyParser(&user); err != nil {
 		return utils.BadRequest(ctx, "Gagal Parsing Data", err.Error())
@@ -141,16 +137,15 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 	var userResp models.UserResponse
 	err = copier.Copy(&userResp, &userUpdated)
 	if err != nil {
-		return utils.InternalServerError(ctx, "Error Parsing Data", err.Error())
+		return utils.InternalServerError(ctx, "Error parsing data", err.Error())
 	}
-	return utils.Success(ctx, "Data Update Data", userResp)
+	return utils.Success(ctx, "Berhasil Update data", userResp)
 }
 
 func (c *UserController) DeleteUser(ctx *fiber.Ctx) error {
 	id, _ := strconv.Atoi(ctx.Params("id"))
-	if err :=c.service.Delete(uint(id));err != nil {
+	if err := c.service.Delete(uint(id)); err != nil {
 		return utils.InternalServerError(ctx, "Gagal Menghapus Data", err.Error())
 	}
-	return utils.Success(ctx, "Berhasil Menghapus Data", id)
+	return utils.Success(ctx, "Berhasil menghapus data", id)
 }
-

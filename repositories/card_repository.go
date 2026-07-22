@@ -20,12 +20,11 @@ type CardRepository interface {
 	FindCardPositionByListID(id int64) (*models.CardPosition, error)
 	UpdatePosition(listID string, position []string) error
 
-	AddLabel(cardID, labelID int64) error
-	RemoveLabel(cardID, labelID int64) error
+	AddLabel(cardID uint, labelID uint) error
+	RemoveLabel(cardID uint, labelID uint) error
 }
 
 type cardRepository struct {
-
 }
 
 func NewCardRepository() CardRepository {
@@ -46,43 +45,25 @@ func (r *cardRepository) Delete(id uint) error {
 
 func (r *cardRepository) FindByID(id uint) (*models.Card, error) {
 	var card models.Card
-	err := config.DB.Preload("Labels").Preload("Assigness").First(&card,id).Error
-
+	err := config.DB.Preload("Labels").Preload("Assigness").First(&card, id).Error
 	return &card, err
 }
 
 func (r *cardRepository) FindByPublicID(publicID string) (*models.Card, error) {
 	var card models.Card
-
-	// Mengambil relasi Assignees beserta data User dari setiap assignee
-	// Misalnya Card -> Assignees -> User
-	if err := config.DB.Preload("Assignees.User", func (tx *gorm.DB) *gorm.DB {
-		// Hanya mengambil kolom tertentu dari tabel users
-		// agar response lebih ringan dan tidak mengirim data yang tidak diperlukan
+	if err := config.DB.Preload("Assignees.User", func(tx *gorm.DB) *gorm.DB {
 		return tx.Select("internal_id", "public_id", "name", "email")
 	}).Preload("Attachments").Where("public_id = ?", publicID).First(&card).Error; err != nil {
 		return nil, err
 	}
 
-	// Mengambil base URL aplikasi dari file .env
-	// Contoh:
-	// http://localhost:3030
 	baseUrl := config.AppConfig.APPURL
 
-	// Melakukan perulangan untuk setiap attachment yang dimiliki card
 	for i := range card.Attachments {
-		// Membuat URL yang bisa diakses oleh browser
-		//
-		// Misalnya:
-		// File di database:
-		// uploads/card/jwt.pdf
-		//
-		// Menjadi:
-		// http://localhost:3030/files/jwt.pdf
 		card.Attachments[i].FileURL = fmt.Sprintf("%s/files/%s",
-		baseUrl,
-		filepath.Base(card.Attachments[i].File),
-	)
+			baseUrl,
+			filepath.Base(card.Attachments[i].File),
+		)
 	}
 
 	return &card, nil
@@ -91,10 +72,9 @@ func (r *cardRepository) FindByPublicID(publicID string) (*models.Card, error) {
 func (r *cardRepository) FindByListID(listID string) ([]models.Card, error) {
 	var cards []models.Card
 	err := config.DB.Joins("JOIN lists ON lists.internal_id = cards.list_internal_id").
-	Where("lists.public_id = ?", listID).
-	Order("position ASC").
-	Find(&cards).Error
-
+		Where("lists.public_id = ?", listID).
+		Order("position ASC").
+		Find(&cards).Error
 	return cards, err
 }
 
@@ -109,19 +89,19 @@ func (r *cardRepository) FindCardPositionByListID(id int64) (*models.CardPositio
 
 func (r *cardRepository) UpdatePosition(listID string, position []string) error {
 	return config.DB.Model(&models.CardPosition{}).
-	Where("list_internal_id = (SELECT internal_id FROM lists Where public_id = ?)", listID).
-	Update("card_order", position).Error	
+		Where("list_internal_id = (SELECT internal_id FROM lists Where public_id = ?)", listID).
+		Update("card_order", position).Error
 }
 
-func (r *cardRepository) AddLabel(cardID, labelID int64) error {
-	return config.DB.Create(&models.CardLabel{
-		CardID:  cardID,
-		LabelID: labelID,
-	}).Error
+func (r *cardRepository) AddLabel(cardID uint, labelID uint) error {
+	cardLabel := models.CardLabel{
+		CardID:  int64(cardID),
+		LabelID: int64(labelID),
+	}
+	return config.DB.Create(&cardLabel).Error
 }
 
-func (r *cardRepository) RemoveLabel(cardID, labelID int64) error {
-	return config.DB.
-		Where("card_internal_id = ? AND label_internal_id = ?", cardID, labelID).
+func (r *cardRepository) RemoveLabel(cardID uint, labelID uint) error {
+	return config.DB.Where("card_internal_id = ? AND label_internal_id = ?", cardID, labelID).
 		Delete(&models.CardLabel{}).Error
 }

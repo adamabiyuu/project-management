@@ -27,73 +27,74 @@ func (c *BoardController) CreateBoard(ctx *fiber.Ctx) error {
 	board := new(models.Board)
 	user := ctx.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
-	
+
 	if err := ctx.BodyParser(board); err != nil {
-		return utils.BadRequest(ctx, "Gagal Membaca Request", err.Error())
+		return utils.BadRequest(ctx, "Gagal membaca request", err.Error())
 	}
 
 	userID, err = uuid.Parse(claims["pub_id"].(string))
 	if err != nil {
-		return utils.BadRequest(ctx, "Gagal Membaca Request", err.Error())
+		return utils.BadRequest(ctx, "Gagal membaca request", err.Error())
 	}
-	board.OwnerPublicId = userID
-	
+	board.OwnerPublicID = userID
+
 	if err := c.service.Create(board); err != nil {
 		return utils.BadRequest(ctx, "Gagal Menyimpan Data", err.Error())
 	}
-	return utils.Success(ctx, "Board Berhasil Dibuat", board)
+	return utils.Success(ctx, "Board berhasil dibuat", board)
 }
-
 func (c *BoardController) UpdateBoard(ctx *fiber.Ctx) error {
 	publicID := ctx.Params("id")
 	board := new(models.Board)
 
 	if err := ctx.BodyParser(board); err != nil {
-		return utils.BadRequest(ctx, "Gagal Parsing Data", err.Error())
+		return utils.BadRequest(ctx, "Gagal parsing Data", err.Error())
 	}
 	if _, err := uuid.Parse(publicID); err != nil {
-		return utils.BadRequest(ctx, "ID Tidak Valid", err.Error())
+		return utils.BadRequest(ctx, "ID tidak Valid", err.Error())
 	}
 	existingBoard, err := c.service.GetByPublicID(publicID)
 	if err != nil {
-		return utils.NotFound(ctx, "Board Tidak Ditemukan", err.Error())
+		return utils.NotFound(ctx, "Board tidak ditemukan", err.Error())
 	}
 	board.InternalID = existingBoard.InternalID
 	board.PublicID = existingBoard.PublicID
 	board.OwnerID = existingBoard.OwnerID
-	board.OwnerPublicId = existingBoard.OwnerPublicId
+	board.OwnerPublicID = existingBoard.OwnerPublicID
 	board.CreatedAt = existingBoard.CreatedAt
 
 	if err := c.service.Update(board); err != nil {
-		return utils.BadRequest(ctx, "Gagal Update Board", err.Error())
+		return utils.BadRequest(ctx, "Gagal update board ", err.Error())
 	}
-	return utils.Success(ctx, "Board Berhasil Diperbaharui", board)
+	return utils.Success(ctx, "Board berhasil diperbaharui", board)
 }
 
-func (c *BoardController) AddBoardMembers(ctx *fiber.Ctx) error{
+func (c *BoardController) AddBoardMembers(ctx *fiber.Ctx) error {
 	publicID := ctx.Params("id")
 
 	var userIDs []string
 	if err := ctx.BodyParser(&userIDs); err != nil {
 		return utils.BadRequest(ctx, "Gagal Parsing Data", err.Error())
 	}
+
 	if err := c.service.AddMembers(publicID, userIDs); err != nil {
 		return utils.BadRequest(ctx, "Gagal Menambahkan Members", err.Error())
 	}
-	return utils.Success(ctx, "Member Berhasil ditambahkan", nil)
+	return utils.Success(ctx, "Members berhasil ditambahkan", nil)
 }
 
-func (c *BoardController) RemoveBoardMembers(ctx *fiber.Ctx) error{
+func (c *BoardController) RemoveBoardMembers(ctx *fiber.Ctx) error {
 	publicID := ctx.Params("id")
 
 	var userIDs []string
 	if err := ctx.BodyParser(&userIDs); err != nil {
 		return utils.BadRequest(ctx, "Gagal Parsing Data", err.Error())
 	}
+
 	if err := c.service.RemoveMembers(publicID, userIDs); err != nil {
 		return utils.BadRequest(ctx, "Gagal Menghapus Member", err.Error())
 	}
-	return utils.Success(ctx, "Member Berhasil dihapus", nil)
+	return utils.Success(ctx, "Members berhasil dihapus", nil)
 }
 
 func (c *BoardController) GetMyBoardPaginate(ctx *fiber.Ctx) error {
@@ -114,13 +115,12 @@ func (c *BoardController) GetMyBoardPaginate(ctx *fiber.Ctx) error {
 	}
 
 	meta := utils.PaginationMeta{
-		Page: page,
-		Limit: limit,
-		Total: int(total),
+		Page:      page,
+		Limit:     limit,
+		Total:     int(total),
 		TotalPage: int(math.Ceil(float64(total) / float64(limit))),
-		Filter: filter,
-		Sort: sort,
+		Filter:    filter,
+		Sort:      sort,
 	}
-
-	return utils.SuccessPagination(ctx, "Data Board Berhasil diambil", boards, meta)
+	return utils.SuccessPagination(ctx, "Data Board Berhasil Diambil", boards, meta)
 }

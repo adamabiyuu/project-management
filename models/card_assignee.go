@@ -11,7 +11,7 @@ type CardAssignee struct {
 
 type UserLite struct {
 	InternalID int64     `json:"internal_id" db:"internal_id" gorm:"primaryKey"`
-	PublicID   uuid.UUID `json:"public_id" db:"public_id"`
+	PublicID   uuid.UUID `json:"public_id" db:"public_id" gorm:"column:public_id"`
 	Name       string    `json:"name" db:"name"`
 	Email      string    `json:"email" db:"email" gorm:"unique"`
 }

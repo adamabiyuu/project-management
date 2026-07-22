@@ -6,6 +6,9 @@ import (
 )
 
 type LabelRepository interface {
+	Create(label *models.Label) error
+	Update(label *models.Label) error
+	Delete(id uint) error
 	FindByPublicID(publicID string) (*models.Label, error)
 }
 
@@ -15,14 +18,20 @@ func NewLabelRepository() LabelRepository {
 	return &labelRepository{}
 }
 
+func (r *labelRepository) Create(label *models.Label) error {
+	return config.DB.Create(label).Error
+}
+
+func (r *labelRepository) Update(label *models.Label) error {
+	return config.DB.Save(label).Error
+}
+
+func (r *labelRepository) Delete(id uint) error {
+	return config.DB.Delete(&models.Label{}, id).Error
+}
+
 func (r *labelRepository) FindByPublicID(publicID string) (*models.Label, error) {
 	var label models.Label
-
-	if err := config.DB.
-		Where("public_id = ?", publicID).
-		First(&label).Error; err != nil {
-		return nil, err
-	}
-
-	return &label, nil
+	err := config.DB.Where("public_id = ?", publicID).First(&label).Error
+	return &label, err
 }
