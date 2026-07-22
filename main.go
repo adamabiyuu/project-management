@@ -10,6 +10,7 @@ import (
 	"github.com/adamabiyuu/project-management/routes"
 	"github.com/adamabiyuu/project-management/services"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func main() {
@@ -18,6 +19,11 @@ func main() {
 
 	seed.SeedAdmin()
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+	AllowOrigins: config.AppConfig.CORSOrigin,
+	AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+	AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
+}))
 	//user
 	userRepo := repositories.NewUserRepository()
 	userService := services.NewUserService(userRepo)
