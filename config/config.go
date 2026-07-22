@@ -47,6 +47,7 @@ func LoadEnv() {
 		JWTExpire:       getEnv("JWT_EXPIRY", "6h"),
 		JWTRefreshToken: getEnv("REFRESH_TOKEN_EXPIRED", "24h"),
 		APPURL:          getEnv("APP_URL", "http://localhost:3030"),
+		
 		CORSOrigin: getEnv("CORS_ORIGIN", "http://localhost:5173"),
 	}
 
